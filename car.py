@@ -1,5 +1,4 @@
 #!/bin/python2
-import setting
 import ride
 
 class Car:
@@ -32,8 +31,7 @@ class Car:
         self.j= location_list[1]
         self.pos_at_endof_lastride=[self.i, self.j]
 
-    def do_this_ride(self, ride_list_index, t):
-        this_ride=setting.ride_list[ride_list_index]
+    def do_this_ride(self, this_ride, t):
         self.listOfDoneRides.append(this_ride)
         self.available_time=t+this_ride.duration
         ij=this_ride.get_drop_off_loc()
