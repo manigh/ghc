@@ -1,6 +1,7 @@
 #!/bin/python2
 from car import Car
 from ride import Ride
+from main import *
 
 def parse(f):
     lines = f.readlines()
@@ -39,5 +40,11 @@ def parse(f):
 
     return passed_list
 
-def save():
+def save(o):
+    c_list=main.car_list
+    for c in c_list:
+        c_list_of_Done_rides=c.listOfDoneRides
+        output_string = str(c_list.indext(c)) + " "
+        for r in c_list_of_Done_rides:
+
     return True
