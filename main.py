@@ -5,17 +5,7 @@ import car
 import sys
 import parser
 
-
-#if we decide to do it
-#this_car.do_this_ride.do_this_ride()
-#updates this_car.listOfDoneRides
-#updates this_car.available_time set to t+this_ride.duration+this_car.distance_to_next_ride(this_ride)
-#updates this_car.ij -> set to get_drop_off_loc
-#also calls do_it(this_car,t) returns bonus_awarded and updates ride.isDone to True
-#checks
-#!!! if car.time_of_last_ride (int)>T => raise ValueError('ride took too long')
-#!!! if car.get_pos_at_endof_lastride [] != ride.get_drop_off_loc [] => raise ValueError('ride went somewhere else')
-def do(ride, c, t):
+def do(r, c, t):
     if(r.is_Done==False):
         car_do_this_ride_check=[]
         car_do_this_ride_check=c.do_this_ride(r, t)
@@ -36,10 +26,36 @@ def do(ride, c, t):
         else:
             print "car index " + str(car_list.index(c)) + " is assigned to ride " + str(ride_list.index(r))
 
+def pick_from_available_cars(r, available_cars, t):
+    number_of_bonus_cars=0
+    for c in available_cars:
+        time_to_make_itAND_bonus_list=r.time_to_make_itAND_bonus(c,t)
+        spare_toDEADLINE = int(time_to_make_itAND_bonus_list[0])
+        spare_toBONUS = int(time_to_make_itAND_bonus_list[1])
+        if(spare_toDEADLINE<0):
+            print "car index " + str(car_list.index(c)) + " was unable to pick ride " + str(ride_list.index(r))
+        elif(spare_toDEADLINE==0):
+            #change later, but so far it will pick the car that has the last chance to get it
+            do(r,c,t)
+            #bonus not calculated
+        elif(spare_toDEADLINE>0):
+            if(spare_toBONUS<0):
+                #missed bonus so maybe dont
+                do(r,c,t)
+            elif(spare_toBONUS==0):
+                #change later, but defo do it now
+                number_of_bonus_cars+=1
+                do(r,c,t)
+            elif(spare_toBONUS>0):
+                #has time to get bonus so maybe prefer above
+                number_of_bonus_cars+=1
+                do(r,c,t)
+    return True
+
 filename = sys.argv[1]
 f = open(filename)
 passed_list=[]
-passed_list = parser.parse(f)
+passed_list = parser.read(f)
 f.close()
 I=int(passed_list[0])
 J=int(passed_list[1])
@@ -59,9 +75,11 @@ while t <= T:
         if(r.ride_is_possible(int(t)) and (r.is_Done==False)):
             #for all cars
             #if car.is_available(t)==True
+            available_cars=[]
             for c in car_list:
                 #remove r is done to try diff ways
-                if(c.is_available(t) and (r.is_Done==False)):
+                if(c.is_available(t)):
+                    available_cars.append(c)
                     #if car at ij ,t: time_to_make_itAND_bonus(car,t)=[_,_]
                     #time_to_make_itAND_bonus[0]=can get to DEADLINE and have this time to spare (int)
                     #time_to_make_itAND_bonus[1]=can get to BONUS and have this time to spare (int)
@@ -84,20 +102,26 @@ while t <= T:
                     elif(spare_toDEADLINE==0):
                         #change later, but so far it will pick the car that has the last chance to get it
                         do(r,c,t)
-                        r.is_Done==True
                         #bonus not calculated
                     elif(spare_toDEADLINE>0):
                         if(spare_toBONUS<0):
                             #missed bonus so maybe dont
                             do(r,c,t)
-                            r.is_Done==True
                         elif(spare_toBONUS==0):
                             #change later, but defo do it now
                             do(r,c,t)
-                            r.is_Done==True
                         elif(spare_toBONUS>0):
                             #has time to get bonus so maybe prefer above
                             do(r,c,t)
-                            r.is_Done==True
+            if (len(available_cars)==0):
+                print "no car available for ride " + str(ride_list.index(r)) + " at time " + str(t)
+            else:
+                c=pick_from_available_cars(r, available_cars, t)
+                do(r,c,t)
+                r.is_Done=True
     t+=1
-print "done"
+outputfilename = filename .rstrip('in')
+outputfilename += "out"
+o = open(outputfilename, "w")
+parser.save(o, car_list, ride_list)
+o.close()
