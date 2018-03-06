@@ -32,23 +32,20 @@ class Car:
         self.pos_at_endof_lastride=[self.i, self.j]
 
     def distance_to_next_ride(self, ij):
-        myij=get_pos_at_endof_lastride()
+        myij=self.pos_at_endof_lastride
         distance_to_next_ride=0
         distance_to_next_ride=abs(int(ij[0])-int(myij[0]))+abs(int(ij[1])-int(myij[1]))
         return int(distance_to_next_ride)
 
     def do_this_ride(self, this_ride, t):
         self.listOfDoneRides.append(this_ride)
-        self.available_time=int(t)+int(this_ride.duration)+int(distance_to_next_ride(this_ride))
+        self.available_time=int(t)+int(this_ride.duration)+int(self.distance_to_next_ride(this_ride.get_pick_up_loc()))
         ij=this_ride.get_drop_off_loc()
-        set_pos(ij)
-        ride_done_check=[]
-        ride_done_check=this_ride.do_it(t)
-        if(ride_done_check[0]!=ij):
+        self.set_pos(ij)
+        check_ij_from_ride=this_ride.do_it()
+        if(check_ij_from_ride!=ij):
             raise ValueError('ride end is not same as car ij after done ride')
-        bonus_awarded=0
-        bonus_awarded=ride_done_check[1]
-        return [get_pos_at_endof_lastride(),self.available_time,bonus_awarded]
+        return [self.get_pos_at_endof_lastride(),self.available_time]
 
     def is_available(self,t):
-        return (time_of_last_ride() <= t)
+        return (self.available_time <= t)

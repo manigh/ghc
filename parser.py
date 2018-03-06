@@ -10,8 +10,7 @@ def parse(f):
     print "B is: " + str(passed_list[4])
 
     print "F is: " + str(passed_list[2])
-
-    for i in range(0,int(passed_list[2])+1):
+    for i in range(0,int(passed_list[2])):
         i=0
         j=0
         listOfDoneRides=[]
@@ -29,7 +28,7 @@ def parse(f):
         endj= int(ride_details[3])
         earliest= int(ride_details[4])
         latest= int(ride_details[5])
-        this_ride=Ride(starti, startj, endi, endj, earliest, latest, passed_list[4])
+        this_ride=Ride(starti, startj, endi, endj, earliest, latest)
         ride_list.append(this_ride)
 
     print "Check RideList is of size: " + str(len(ride_list)) + " initiated."
