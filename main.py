@@ -4,52 +4,49 @@ from ride import *
 import car
 import sys
 import parser
+import random
 
 def do(r, c, t):
-    if(r.is_Done==False):
-        car_do_this_ride_check=[]
-        car_do_this_ride_check=c.do_this_ride(r, t)
-        r.do_it()
-        cars_new_ij=[]
-        cars_new_ij=car_do_this_ride_check[0]
-        cars_new_avalability=car_do_this_ride_check[1]
-        if(r.ride_is_possible(t) or (r.is_Done == False)):
-            raise ValueError('ride has not been marked done')
-        elif(not(r in c.listOfDoneRides)):
-            raise ValueError('ride doesnt have this_ride in its list')
-        elif(cars_new_ij!=r.get_drop_off_loc()):
-            raise ValueError('car didnt end up where it should have')
-        elif(cars_new_avalability>T):
-            raise ValueError('ride took too long')
-        elif(cars_new_avalability>T):
-            raise ValueError('ride took too long')
-        else:
-            print "car index " + str(car_list.index(c)) + " is assigned to ride " + str(ride_list.index(r))
+    c.do_this_ride(r, t)
+    r.isDone=True
 
 def pick_from_available_cars(r, available_cars, t):
-    number_of_bonus_cars=0
+    bonus_cars=[]
+    deadline_cars=[]
     for c in available_cars:
         time_to_make_itAND_bonus_list=r.time_to_make_itAND_bonus(c,t)
         spare_toDEADLINE = int(time_to_make_itAND_bonus_list[0])
         spare_toBONUS = int(time_to_make_itAND_bonus_list[1])
-        if(spare_toDEADLINE<0):
-            print "car index " + str(car_list.index(c)) + " was unable to pick ride " + str(ride_list.index(r))
-        elif(spare_toDEADLINE==0):
-            #change later, but so far it will pick the car that has the last chance to get it
-            do(r,c,t)
-            #bonus not calculated
+        if(spare_toDEADLINE==0):
+            deadline_cars.append(c)
         elif(spare_toDEADLINE>0):
-            if(spare_toBONUS<0):
-                #missed bonus so maybe dont
-                do(r,c,t)
-            elif(spare_toBONUS==0):
-                #change later, but defo do it now
-                number_of_bonus_cars+=1
-                do(r,c,t)
-            elif(spare_toBONUS>0):
-                #has time to get bonus so maybe prefer above
-                number_of_bonus_cars+=1
-                do(r,c,t)
+            deadline_cars.append(c)
+            if(spare_toBONUS>=0):
+                bonus_cars.append(c)
+    d=len(deadline_cars)
+    b=len(bonus_cars)
+    if (d==0):
+        print "no car could make it to ride on time for ride " + str(ride_list.index(r))
+    elif (d==1):
+        c=deadline_cars[0]
+        print "only car " +  str(car_list.index(c)) + " could make it to ride  " + str(ride_list.index(r))
+        do(r,c,t)
+    elif (d>1):
+        if (b==0):
+            print "no car could get the bonus on time for ride " + str(ride_list.index(r))
+            c_index=random.randint(0,len(deadline_cars)-1)
+            c=deadline_cars[c_index]
+            print "picked car " +  str(car_list.index(c)) + " to do the ride  " + str(ride_list.index(r))
+            do(r,c,t)
+        elif (b==1):
+            c=bonus_cars[0]
+            print "only car " +  str(car_list.index(c)) + " could get bonus on ride  " + str(ride_list.index(r))
+            do(r,c,t)
+        elif (b>1):
+            c_index=random.randint(0,len(bonus_cars)-1)
+            c=bonus_cars[c_index]
+            print "picked car " +  str(car_list.index(c)) + " to get bonus on ride  " + str(ride_list.index(r))
+            do(r,c,t)
     return True
 
 filename = sys.argv[1]
@@ -72,7 +69,7 @@ while t <= T:
     #if !isDone
     #if ride_is_possible at t
     for r in ride_list:
-        if(r.ride_is_possible(int(t)) and (r.is_Done==False)):
+        if(r.ride_is_possible(int(t))):
             #for all cars
             #if car.is_available(t)==True
             available_cars=[]
@@ -80,45 +77,11 @@ while t <= T:
                 #remove r is done to try diff ways
                 if(c.is_available(t)):
                     available_cars.append(c)
-                    #if car at ij ,t: time_to_make_itAND_bonus(car,t)=[_,_]
-                    #time_to_make_itAND_bonus[0]=can get to DEADLINE and have this time to spare (int)
-                    #time_to_make_itAND_bonus[1]=can get to BONUS and have this time to spare (int)
-                    time_to_make_itAND_bonus_list=r.time_to_make_itAND_bonus(c,t)
-                    spare_toDEADLINE = int(time_to_make_itAND_bonus_list[0])
-                    spare_toBONUS = int(time_to_make_itAND_bonus_list[1])
-                    #if time_to_make_itAND_bonus[0]<0 car cant do it(check others) !!! if no other can, isDone=True
-
-                    #if time_to_make_itAND_bonus[0]=0 last chance for this car just to make it
-                    #-if time_to_make_itAND_bonus[1]=0 last chance for this car to BONUS
-                    #-if time_to_make_itAND_bonus[1]>0 car has time to spare to BONUS
-                    #-if time_to_make_itAND_bonus[1]<0 car has MISSED BONUS
-                    #if time_to_make_itAND_bonus[0]>0 car has time to spare just to make it
-                    #-if time_to_make_itAND_bonus[1]=0 last chance for this car to BONUS
-                    #-if time_to_make_itAND_bonus[1]>0 car has time to spare to BONUS
-                    #-if time_to_make_itAND_bonus[1]<0 car has MISSED BONUS
-
-                    if(spare_toDEADLINE<0):
-                        print "car index " + str(car_list.index(c)) + " was unable to pick ride " + str(ride_list.index(r))
-                    elif(spare_toDEADLINE==0):
-                        #change later, but so far it will pick the car that has the last chance to get it
-                        do(r,c,t)
-                        #bonus not calculated
-                    elif(spare_toDEADLINE>0):
-                        if(spare_toBONUS<0):
-                            #missed bonus so maybe dont
-                            do(r,c,t)
-                        elif(spare_toBONUS==0):
-                            #change later, but defo do it now
-                            do(r,c,t)
-                        elif(spare_toBONUS>0):
-                            #has time to get bonus so maybe prefer above
-                            do(r,c,t)
             if (len(available_cars)==0):
                 print "no car available for ride " + str(ride_list.index(r)) + " at time " + str(t)
             else:
-                c=pick_from_available_cars(r, available_cars, t)
-                do(r,c,t)
-                r.is_Done=True
+                print "We can pick " + str(len(available_cars)) + " cars for ride " + str(ride_list.index(r)) + " at time " + str(t)
+                pick_from_available_cars(r, available_cars, t)
     t+=1
 outputfilename = filename .rstrip('in')
 outputfilename += "out"
